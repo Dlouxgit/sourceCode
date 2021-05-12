@@ -355,6 +355,57 @@
       }
     }
 
+    let id = 0;
+
+    class Watcher {
+      constructor(vm, fn, cb, options) {
+        this.vm = vm;
+        this.fn = fn;
+        this.cb = cb;
+        this.options = options;
+        this.id = id++;
+        this.depIds = new Set();
+        this.getter = fn;
+        this.deps = [];
+        this.get();
+      }
+
+      addDep(dep) {
+        depId = dep.id;
+
+        if (!this.depIds.has(depId)) {
+          this.depIds.add(depId);
+          this.deps.push(dep);
+          dep.subs.push(this);
+        }
+      }
+
+      get() {
+        this.getter();
+      }
+
+      update() {
+        this.get();
+      }
+
+    }
+
+    function mountComponent() {
+      const updateComponent = () => {
+        vm._update(vm._render());
+      };
+
+      new Watcher(vm, updateComponent, () => {
+        console.log('hook');
+      }, true);
+    }
+    function lifecycleMixin(Vue) {
+      Vue.prototype._update = function (vnode) {
+        const vm = this;
+        vm.$el = patch(vm.$el, vnode);
+      };
+    }
+
     function initMixin(Vue) {
       Vue.prototype._init = function (options) {
         const vm = this;
@@ -382,6 +433,37 @@
             opts.render = render;
           }
         }
+
+        mountComponent();
+      };
+    }
+
+    function renderMixin(Vue) {
+      // 生成虚拟元素节点
+      Vue.prototype._c = function (...args) {
+        const vm = this;
+        return createElement(vm, ...args);
+      }; // 生成虚拟文本节点
+
+
+      Vue.prototype._v = function (text) {
+        const vm = this;
+        return createText(vm, text);
+      }; // 把属性变成字符串
+
+
+      Vue.prototype._s = function (val) {
+        if (isObject(val)) return JSON.stringify(val);
+        return val;
+      };
+
+      Vue.prototype._render = function () {
+        const vm = this;
+        const {
+          render
+        } = vm.$options;
+        const vnode = render.call(vm);
+        return vnode;
       };
     }
 
@@ -390,6 +472,8 @@
     }
 
     initMixin(Vue);
+    renderMixin(Vue);
+    lifecycleMixin(Vue);
 
     return Vue;
 
