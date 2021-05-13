@@ -19,14 +19,16 @@ export function initMixin(Vue) {
         const opts = vm.$options
         el = document.querySelector(el)
         vm.$el = el
-        if (!vm.render) {
+        if (!opts.render) {
             // 模板编译
             let template = opts.template
             
             if (!template) {
-                let render = compileToFunction(el.outerHTML)
-                opts.render = render
+                template = el.outerHTML
             }
+            debugger
+            let render = compileToFunction(el.outerHTML)
+            opts.render = render
         }
         mountComponent(vm)
     }

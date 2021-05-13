@@ -1,4 +1,5 @@
 import { isObject } from './utils'
+import { createElement, createText } from './vdom'
 
 export function renderMixin(Vue) {
     // 生成虚拟元素节点

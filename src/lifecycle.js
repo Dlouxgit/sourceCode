@@ -1,6 +1,8 @@
 import Watcher from './observe/watcher'
 
-export function mountComponent() {
+import { patch } from './vdom/patch'
+
+export function mountComponent(vm) {
     const updateComponent = () => {
         vm._update(vm._render())
     }

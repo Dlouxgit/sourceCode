@@ -201,7 +201,7 @@
 
     function generate(ast) {
       let children = genChildren(ast);
-      let code = `_c('${ast.tag}', ${ast.attrs.length ? genProps(ast.attrs) : 'undefined'})${children ? `,${children}` : ''}`;
+      let code = `_c('${ast.tag}', ${ast.attrs.length ? genProps(ast.attrs) : 'undefined'}${children ? `,${children}` : ''})`;
       return code;
     }
 
@@ -210,6 +210,7 @@
       let code = generate(ast);
       let render = new Function(`with(this){return ${code}}`);
       console.log('redner', render.toString());
+      return render;
     }
 
     function isFunction(val) {
@@ -390,7 +391,46 @@
 
     }
 
-    function mountComponent() {
+    function patch(el, vnode) {
+      const elm = createElm(vnode); // 创造真实节点
+
+      const parentNode = el.parentNode;
+      debugger;
+      parentNode.insertBefore(elm, el.nextSibling);
+      parentNode.removeChild(el);
+      return elm;
+    }
+
+    function createElm(vnode) {
+      let {
+        tag,
+        data,
+        children,
+        text,
+        vm
+      } = vnode;
+
+      if (typeof tag === 'string') {
+        vnode.el = document.createElement(tag);
+        updateProperties(vnode.el, data);
+        children.forEach(child => {
+          vnode.el.appendChild(createElm(child));
+        });
+      } else {
+        // text 没有 tag
+        vnode.el = document.createTextNode(text);
+      }
+
+      return vnode.el;
+    }
+
+    function updateProperties(el, props = {}) {
+      for (let key in props) {
+        el.setAttribute(key, props[key]);
+      }
+    }
+
+    function mountComponent(vm) {
       const updateComponent = () => {
         vm._update(vm._render());
       };
@@ -424,17 +464,39 @@
         el = document.querySelector(el);
         vm.$el = el;
 
-        if (!vm.render) {
+        if (!opts.render) {
           // 模板编译
           let template = opts.template;
 
           if (!template) {
-            let render = compileToFunction(el.outerHTML);
-            opts.render = render;
+            template = el.outerHTML;
           }
+
+          debugger;
+          let render = compileToFunction(el.outerHTML);
+          opts.render = render;
         }
 
-        mountComponent();
+        mountComponent(vm);
+      };
+    }
+
+    function createElement(vm, tag, data = {}, ...children) {
+      return vnode(vm, tag, data, children, data.key, undefined);
+    }
+    function createText(vm, text) {
+      return vnode(vm, undefined, undefined, undefined, undefined, text);
+    }
+
+    function vnode(vm, tag, data, children, key, text) {
+      debugger;
+      return {
+        vm,
+        tag,
+        data,
+        children,
+        key,
+        text
       };
     }
 
