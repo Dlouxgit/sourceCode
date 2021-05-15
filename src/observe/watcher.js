@@ -15,7 +15,7 @@ class Watcher {
     }
 
     addDep(dep) {
-        depId = dep.id
+        let depId = dep.id
         if (!this.depIds.has(depId)) {
             this.depIds.add(depId)
             this.deps.push(dep)
