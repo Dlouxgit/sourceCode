@@ -8,3 +8,5 @@
 + 将vnode 转为真正的 element 并挂载到页面上
 + 收集依赖，派发更新
 + data 的观察者模式
++ update 时触发的 watcher 队列
++ nextTick 的任务队列
