@@ -1,7 +1,6 @@
 export function patch(el, vnode) {
     const elm = createElm(vnode) // 创造真实节点
     const parentNode = el.parentNode
-    debugger
     parentNode.insertBefore(elm, el.nextSibling)
     parentNode.removeChild(el)
     return elm

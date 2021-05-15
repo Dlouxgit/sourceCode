@@ -1,6 +1,7 @@
 import { compileToFunction } from './compiler'
 import { initState } from './state'
 import { mountComponent } from './lifecycle'
+import { nextTick } from './utils'
 
 export function initMixin(Vue) {
     Vue.prototype._init = function (options) {
@@ -26,10 +27,10 @@ export function initMixin(Vue) {
             if (!template) {
                 template = el.outerHTML
             }
-            debugger
             let render = compileToFunction(el.outerHTML)
             opts.render = render
         }
         mountComponent(vm)
     }
+    Vue.prototype.$nextTick = nextTick
 }

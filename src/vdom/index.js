@@ -7,7 +7,6 @@ export function createText(vm, text) {
 }
 
 function vnode(vm, tag, data, children, key, text) {
-    debugger
     return {
         vm,
         tag,

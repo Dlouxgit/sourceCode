@@ -1,4 +1,5 @@
 import Dep from './dep'
+import { queueWatcher } from './scheduler'
 
 let id = 0
 class Watcher {
@@ -30,6 +31,11 @@ class Watcher {
     }
 
     update() {
+        queueWatcher(this)
+    }
+
+    run() {
+        console.log('渲染触发')
         this.get()
     }
 }

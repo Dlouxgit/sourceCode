@@ -23,6 +23,19 @@
             }
         })
         console.log(app)
+        app.msg = '111'
+        app.msg = '112'
+        app.msg = '113'
+        app.$nextTick(() => {
+            console.log('第一次')
+        })
+        app.$nextTick(() => {
+            console.log('第二次')
+        })
+        app.$nextTick(() => {
+            console.log('第三次')
+        })
+        app.msg = '114'
     </script>
 </body>
 </html>

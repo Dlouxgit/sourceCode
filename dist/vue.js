@@ -219,6 +219,25 @@
     function isObject(val) {
       return typeof val === 'object' && val !== null;
     }
+    let callbacks = [];
+    let waiting = false;
+
+    function flushCallBacks() {
+      callbacks.forEach(fn => fn());
+      callbacks = [];
+      waiting = false;
+    }
+
+    function nextTick(fn) {
+      callbacks.push(fn);
+
+      if (!waiting) {
+        waiting = true;
+        Promise.resolve().then(flushCallBacks);
+      }
+
+      return;
+    }
     let isArray = Array.isArray;
 
     let oldArrayPrototype = Array.prototype;
@@ -356,6 +375,32 @@
       }
     }
 
+    let queue = [];
+    let has = {};
+
+    function flushSchedulerQueue() {
+      queue.forEach(watcher => watcher.run());
+      queue = [];
+      has = {};
+      pending = false;
+    }
+
+    let pending = false;
+    function queueWatcher(watcher) {
+      let id = watcher.id;
+
+      if (has[id] == null) {
+        // 0 == null toBeFalsy(),  0 == undefined toBeFalsy(),  null == undefined toBeTruthy()
+        has[id] = true;
+        queue.push(watcher);
+
+        if (!pending) {
+          nextTick(flushSchedulerQueue);
+          pending = true;
+        }
+      }
+    }
+
     let id = 0;
 
     class Watcher {
@@ -388,6 +433,11 @@
       }
 
       update() {
+        queueWatcher(this);
+      }
+
+      run() {
+        console.log('渲染触发');
         this.get();
       }
 
@@ -397,7 +447,6 @@
       const elm = createElm(vnode); // 创造真实节点
 
       const parentNode = el.parentNode;
-      debugger;
       parentNode.insertBefore(elm, el.nextSibling);
       parentNode.removeChild(el);
       return elm;
@@ -474,13 +523,14 @@
             template = el.outerHTML;
           }
 
-          debugger;
           let render = compileToFunction(el.outerHTML);
           opts.render = render;
         }
 
         mountComponent(vm);
       };
+
+      Vue.prototype.$nextTick = nextTick;
     }
 
     function createElement(vm, tag, data = {}, ...children) {
@@ -491,7 +541,6 @@
     }
 
     function vnode(vm, tag, data, children, key, text) {
-      debugger;
       return {
         vm,
         tag,
