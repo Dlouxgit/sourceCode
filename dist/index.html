@@ -15,27 +15,27 @@
     </div>
     <script src="./vue.js"></script>
     <script>
+        Vue.mixin({
+            beforeCreated() {
+                console.log('1')
+            }
+        })
         let app = new Vue({
             el: '#app',
             data: {
                 msg: 'hello world',
                 arr: [{name: 'zf'}, {}]
-            }
+            },
+            beforeCreated: [
+                function () {
+                    console.log(3)
+                },
+                function () {
+                    console.log(4)
+                }
+            ]
         })
-        console.log(app)
-        app.msg = '111'
-        app.msg = '112'
-        app.msg = '113'
-        app.$nextTick(() => {
-            console.log('第一次')
-        })
-        app.$nextTick(() => {
-            console.log('第二次')
-        })
-        app.$nextTick(() => {
-            console.log('第三次')
-        })
-        app.msg = '114'
+        console.log(app.$options)
     </script>
 </body>
 </html>

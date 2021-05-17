@@ -4,6 +4,99 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Vue = factory());
 }(this, (function () { 'use strict';
 
+    function isFunction(val) {
+      return typeof val === 'function';
+    }
+    function isObject(val) {
+      return typeof val === 'object' && val !== null;
+    }
+    let callbacks = [];
+    let waiting = false;
+
+    function flushCallBacks() {
+      callbacks.forEach(fn => fn());
+      callbacks = [];
+      waiting = false;
+    }
+
+    function nextTick(fn) {
+      callbacks.push(fn);
+
+      if (!waiting) {
+        waiting = true;
+        Promise.resolve().then(flushCallBacks);
+      }
+
+      return;
+    }
+    let isArray = Array.isArray;
+    let strats = {};
+    let lifeCycle = ['beforeCreate', 'created', 'beforeMount', 'mounted'];
+    lifeCycle.forEach(hook => {
+      strats[hook] = function (parentVal, childVal) {
+        if (childVal) {
+          if (parentVal) {
+            return parentVal.concat(childVal);
+          } else {
+            // 最开始是 {} 和父合并，因此父亲的 key 值一定会走这里变成数组，因此上面的逻辑可以用 concat
+            if (isArray(childVal)) {
+              return childVal;
+            } else {
+              return [childVal];
+            }
+          }
+        } else {
+          return [parentVal];
+        }
+      };
+    });
+    function mergeOptions(parentVal, childVal) {
+      const options = {};
+
+      for (let key in parentVal) {
+        mergeFileds(key);
+      }
+
+      for (let key in childVal) {
+        if (!parentVal.hasOwnProperty(key)) {
+          mergeFileds(key);
+        }
+      }
+
+      function mergeFileds(key) {
+        let strat = strats[key];
+
+        if (strat) {
+          options[key] = strat(parentVal[key], childVal[key]);
+        } else {
+          options[key] = childVal[key] || parentVal[key];
+        }
+      }
+
+      return options;
+    }
+    console.log(mergeOptions({
+      a: 1
+    }, {
+      b: 1,
+      a: 2
+    }));
+
+    function initGlobalAPI(Vue) {
+      Vue.options = {};
+
+      Vue.mixin = function (options) {
+        this.options = mergeOptions(this.options, options);
+        return this;
+      };
+
+      Vue.component = function name() {};
+
+      Vue.filter = function name() {};
+
+      Vue.directive = function name() {};
+    }
+
     const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`; // 匹配标签名的  aa-xxx
 
     const qnameCapture = `((?:${ncname}\\:)?${ncname})`; //  aa:aa-xxx  
@@ -212,33 +305,6 @@
       console.log('redner', render.toString());
       return render;
     }
-
-    function isFunction(val) {
-      return typeof val === 'function';
-    }
-    function isObject(val) {
-      return typeof val === 'object' && val !== null;
-    }
-    let callbacks = [];
-    let waiting = false;
-
-    function flushCallBacks() {
-      callbacks.forEach(fn => fn());
-      callbacks = [];
-      waiting = false;
-    }
-
-    function nextTick(fn) {
-      callbacks.push(fn);
-
-      if (!waiting) {
-        waiting = true;
-        Promise.resolve().then(flushCallBacks);
-      }
-
-      return;
-    }
-    let isArray = Array.isArray;
 
     let oldArrayPrototype = Array.prototype;
     let arrayMethods = Object.create(oldArrayPrototype);
@@ -486,9 +552,12 @@
         vm._update(vm._render());
       };
 
+      callHook(vm, 'beforeCreated');
       new Watcher(vm, updateComponent, () => {
         console.log('hook');
+        callHook(vm, 'created');
       }, true);
+      callHook(vm, 'mounted');
     }
     function lifecycleMixin(Vue) {
       Vue.prototype._update = function (vnode) {
@@ -496,11 +565,21 @@
         vm.$el = patch(vm.$el, vnode);
       };
     }
+    function callHook(vm, hook) {
+      let handlers = vm.$options[hook];
+      console.log(vm.$options);
+      console.log(handlers);
+      debugger;
+      handlers && handlers.forEach(handler => {
+        handler.call(vm);
+      });
+    }
 
     function initMixin(Vue) {
       Vue.prototype._init = function (options) {
         const vm = this;
-        vm.$options = options;
+        vm.$options = mergeOptions(vm.constructor.options, options); // Vue 是全局的 Vue 构造函数，vm.constructor 可能是全局的 Vue，也可能是子类的构造函数，目前这里效果一样
+
         initState(vm);
 
         if (vm.$options.el) {
@@ -587,6 +666,7 @@
     initMixin(Vue);
     renderMixin(Vue);
     lifecycleMixin(Vue);
+    initGlobalAPI(Vue);
 
     return Vue;
 

@@ -1,12 +1,12 @@
 import { compileToFunction } from './compiler'
 import { initState } from './state'
 import { mountComponent } from './lifecycle'
-import { nextTick } from './utils'
+import { mergeOptions, nextTick } from './utils'
 
 export function initMixin(Vue) {
     Vue.prototype._init = function (options) {
         const vm = this
-        vm.$options = options
+        vm.$options = mergeOptions(vm.constructor.options, options) // Vue 是全局的 Vue 构造函数，vm.constructor 可能是全局的 Vue，也可能是子类的构造函数，目前这里效果一样
 
         initState(vm)
 
