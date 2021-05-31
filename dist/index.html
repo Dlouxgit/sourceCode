@@ -11,22 +11,40 @@
         <p>
             {{msg}}
             <span>hello</span>
+            <my-button></my-button>
         </p>
     </div>
     <script src="./vue.js"></script>
     <script>
+        Vue.component('my-button', {
+            template: 'hekki'
+        })
+
         Vue.mixin({
-            beforeCreated() {
+            beforeCreate() {
                 console.log('1')
             }
         })
         let app = new Vue({
             el: '#app',
+            components: {
+                'my-button': {
+                    template: '<button>bad<diy /></button>',
+                    components: {
+                        'diy': {
+                            template: '<span>{{text}}</span>',
+                            data() {
+                                return { text: 'diy' }
+                            }
+                        }
+                    }
+                }
+            },
             data: {
                 msg: 'hello world',
-                arr: [{name: 'zf'}, {}]
+                arr: [{name: 'dl'}, {}]
             },
-            beforeCreated: [
+            beforeCreate: [
                 function () {
                     console.log(3)
                 },

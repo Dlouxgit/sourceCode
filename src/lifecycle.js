@@ -19,7 +19,13 @@ export function mountComponent(vm) {
 export function lifecycleMixin(Vue) {
     Vue.prototype._update = function (vnode) {
         const vm = this
-        vm.$el = patch(vm.$el, vnode)
+        let preVnode = vm._preVnode
+        vm._preVnode = vnode
+        if (!preVnode) {
+            vm.$el = patch(vm.$el, vnode)
+        } else {
+            vm.$el = patch(preVnode, vnode)
+        }
     }
 }
 
@@ -27,7 +33,6 @@ export function callHook(vm, hook) {
     let handlers = vm.$options[hook]
     console.log(vm.$options)
     console.log(handlers)
-    debugger
     handlers && handlers.forEach(handler => {
         handler.call(vm)
     })

@@ -21,7 +21,7 @@ export function parserHTML(html) {
             attrs
         }
     }
-        function start(tag,attrs){ // [div,p]
+    function start(tag,attrs){ // [div,p]
         // 遇到开始标签 就取栈中的最后一个作为父节点
         let parent = stack[stack.length-1];
         let element = createASTElement(tag,attrs,parent);

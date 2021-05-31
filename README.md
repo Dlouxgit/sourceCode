@@ -10,3 +10,6 @@
 + data 的观察者模式
 + update 时触发的 watcher 队列
 + nextTick 的任务队列
++ diff
++ **组件的初始化**
++ **组件的挂载**

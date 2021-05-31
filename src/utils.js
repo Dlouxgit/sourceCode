@@ -53,7 +53,18 @@ lifeCycle.forEach(hook => {
     }
 })
 
+strats.components = function (parentVal, childVal) {
+    let res = Object.create(parentVal)
+    if (childVal) {
+        for  (let key in childVal) {
+            res[key] = childVal[key]
+        }
+    }
+    return res
+}
+
 export function mergeOptions(parentVal, childVal) {
+    console.log('parentVal, childVal', parentVal, childVal)
     const options = {}
 
     for (let key in parentVal) {
@@ -77,4 +88,12 @@ export function mergeOptions(parentVal, childVal) {
 
     return options
 }
-console.log(mergeOptions({a: 1}, {b: 1, a: 2}))
+
+function makeMap(str) {
+    let tagList = str.split(',')
+    return function(tagNmae) {
+        return tagList.includes(tagNmae)
+    }
+}
+
+export const isReservedTag = makeMap('div,span,template,p,script,slot,a,image,text,view,button')

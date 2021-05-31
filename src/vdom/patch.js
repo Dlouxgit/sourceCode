@@ -1,7 +1,14 @@
 import { isSameVnode } from "."
 
 export function patch(oldVnode, vnode) {
-    if (oldVnode.nodeType) {
+    
+    if (!oldVnode) {
+        // 没有 oldVnode 说明是组件渲染，直接返回真实节点
+        return createElm(vnode)
+    }
+    const isRealElement = oldVnode.nodeType
+
+    if (isRealElement) {
         const elm = createElm(vnode) // 创造真实节点
         const parentNode = oldVnode.parentNode
         parentNode.insertBefore(elm, oldVnode.nextSibling)
@@ -115,9 +122,26 @@ function updateChildren(el, oldChildren, newChildren) {
     }
 }
 
+function createComponent(vnode) {
+    let i = vnode.data
+    if ((i = i.hook) && (i = i.init)) {
+        // 相当于如果 i.hook 存在，把 i.hook 赋值给 i
+        // 接着如果 i.hook.init 存在，把 i.hook.init 赋值给 i
+        i(vnode)
+    }
+    if (vnode.componentInstance) {
+        // 说明是组件
+        return true
+    }
+}
+
 function createElm(vnode) {
     let { tag, data, children, text, vm } = vnode
     if (typeof tag === 'string') {
+        if (createComponent(vnode)) {
+            // 返回组件的真实节点
+            return vnode.componentInstance.$el
+        }
         vnode.el = document.createElement(tag)
         updateProperties(vnode)
         children.forEach(child => {
